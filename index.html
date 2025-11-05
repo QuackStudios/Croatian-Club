@@ -511,8 +511,8 @@ var woocommerce_params = {"ajax_url":"\/wp-admin\/admin-ajax.php","wc_ajax_url":
                 <div class="grid">
                     <div class="grid__item">
                         <div class="feature-book-why__content" data-critical="">
-                            <p class="content">Book a tour of Brisbane’s Croatian community venue.</p>
-                            <a href="contact.html" class="btn btn--link">
+                            <p class="content">See what's going on in the club</p>
+                            <a href="#" class="btn btn--link open-menu" data-target="around-the-club">
     <span class="text">Book A Tour</span>
                                 <span class="icon">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="6" viewBox="0 0 12 6">
@@ -520,7 +520,111 @@ var woocommerce_params = {"ajax_url":"\/wp-admin\/admin-ajax.php","wc_ajax_url":
 </svg>
                                 </span>
 </a>                        </div>
-                        
+<style>
+  .header-nav .level-1 > li.force-open > .is-dropmenu {
+    display: none !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Click any element with .open-menu and a data-target
+  document.querySelectorAll('.open-menu').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const targetKey = (btn.getAttribute('data-target') || '').toLowerCase().trim();
+      if (!targetKey) return;
+
+      openMenuThen(() => openTopItem(targetKey));
+    });
+  });
+
+  function openMenuThen(cb) {
+    const menu = document.querySelector('nav.header-nav');
+    const toggler = document.querySelector('.hamburger, [data-link="menu"]');
+
+    // If menu hidden, click the real toggler to keep classes/animations in sync
+    if (menu?.hasAttribute('hidden') && toggler) {
+      toggler.click();
+      setTimeout(cb, 300); // allow open animation
+    } else {
+      if (menu?.hasAttribute('hidden')) menu.removeAttribute('hidden');
+      setTimeout(cb, 0);
+    }
+  }
+
+  // Normalise visible text
+  const norm = (s) => (s || '').replace(/\s+/g, ' ').trim().toLowerCase();
+
+  // Map data-target → visible tab text
+  const TARGET_MAP = {
+    'about': 'about',
+    'venue-hire': 'venue hire',
+    'around-the-club': 'around the club',
+    'whats-on': "what's on",
+    'what’s-on': "what's on" // smart apostrophe fallback
+  };
+
+  function openTopItem(targetKey) {
+    // Clear any previous forced opens
+    document.querySelectorAll('.header-nav .level-1 > li.force-open').forEach(li => li.classList.remove('force-open'));
+
+    const wanted = TARGET_MAP[targetKey] || targetKey;
+    const items = document.querySelectorAll('.header-nav .level-1 > li');
+
+    let targetLi = null;
+    for (const li of items) {
+      const textEl = li.querySelector(':scope > a .text');
+      const label = norm(textEl?.textContent);
+      if (label === wanted) { targetLi = li; break; }
+    }
+    // If exact match failed, try a contains (robust to stray whitespace)
+    if (!targetLi) {
+      for (const li of items) {
+        const label = norm(li.querySelector(':scope > a .text')?.textContent);
+        if (label.includes(wanted)) { targetLi = li; break; }
+      }
+    }
+    if (!targetLi) return;
+
+    // Fire hover events (some themes rely on JS hover to build/show the panel)
+    const anchor = targetLi.querySelector(':scope > a');
+    if (anchor) {
+      ['mouseenter','mouseover','focus'].forEach(type => {
+        anchor.dispatchEvent(new Event(type, { bubbles: true, cancelable: true }));
+      });
+    }
+
+    // Force the submenu visible so it doesn't collapse when the mouse moves
+    targetLi.classList.add('force-open');
+    const submenu = targetLi.querySelector(':scope > ul.is-dropmenu');
+    if (submenu) {
+      
+      submenu.style.visibility = 'visible';
+      // Focus first item for accessibility / visual cue
+      submenu.querySelector('a')?.focus({ preventScroll: false });
+      // Ensure it’s scrolled into view if menu is long
+      submenu.scrollIntoView({ block: 'nearest' });
+    }
+
+    // Optional: mark active tab
+    anchor?.classList.add('active');
+
+    // Close on outside click
+    const closeOnOutside = (evt) => {
+      if (!targetLi.contains(evt.target)) {
+        targetLi.classList.remove('force-open');
+        if (submenu) { submenu.style.display=''; submenu.style.visibility=''; }
+        document.removeEventListener('click', closeOnOutside);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', closeOnOutside), 0);
+  }
+});
+</script>
+
+          
                     </div>
                     
                     <div class="grid__item">
