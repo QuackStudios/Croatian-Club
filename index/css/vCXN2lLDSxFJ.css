@@ -2749,7 +2749,6 @@ body:not(.js-mobile-menu-open) .header-nav ul {
   left: 300px;
   margin-right: -300px;
   max-height: 650px;
-  max-width: 1680px;
   pointer-events: none;
   top: 100px;
   transition: opacity 0.6s linear, visibility 0.6s linear;
@@ -2777,11 +2776,7 @@ body:not(.js-mobile-menu-open) .header-nav ul {
   top: 0;
   z-index: 2;
 }
-.header-nav .picture:before {
-  background: linear-gradient(270deg, #141b4d 0, #141b4d00);
-  right: 0;
-  width: 300px;
-}
+
 .header-nav .picture:after {
   background-color: #141b4d;
   left: 100%;
