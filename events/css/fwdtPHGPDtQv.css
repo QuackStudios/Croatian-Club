@@ -1,0 +1,251 @@
+section.wysiwyg:has(#fintona-map), section.wysiwyg.has-fintona-map {
+    /* Add your styles here */
+    position: relative; /* Example */
+    z-index: 11; /* Lower the z-index so sidebar doesn’t overlap */
+}
+
+
+/* General Map Styling */
+.map-container-wrapper {
+    position: relative;
+    z-index: 100;
+    width: 80vw; /* 80% of the viewport width */
+    height: 80vh; /* Maintain square dimensions */
+    max-width: 1600px; /* Ensure it doesn't exceed the map's native width */
+    max-height: 1430px; /* Ensure it doesn't exceed the map's native height */
+    margin: 0 auto; /* Center on the screen */
+    overflow: hidden; /* Prevent overflow */
+    background-color: #f5f5f5;
+}
+
+#map-container {
+    position: relative;
+    transform-origin: top left;
+    top: 0; 
+    left: 0;
+    overflow: visible; /* Allow map layers to overflow within bounds */
+    cursor: grab;
+    user-select: none; /* Disables text selection */
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+}
+
+#map-container:active {
+    cursor: grabbing;
+}
+
+/* Each Layer Wrapper */
+.map-layer-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.map-layer-wrapper img {
+    user-select: none; /* Ensures map images cannot be selected */
+}
+
+/* Always display the base layer */
+.map-layer-wrapper.base {
+    display: block;
+}
+
+/* Images within the wrapper */
+.map-layer {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none;
+}
+
+.map-layer.base {
+    display: block;
+}
+
+.map-layer[data-layer="base"] {
+    display: block; /* Base map always visible */
+}
+
+/* Menu toggle button */
+.menu-toggle {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    width: 40px;
+    height: 40px;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 20;
+}
+
+.menu-toggle img {
+    height: 75%;
+    width: 75%;
+}
+
+.menu-toggle .close-icon {
+    display: none; /* Hidden by default */
+    font-size: 1.5em;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.menu-toggle.active {
+    background-color: unset;
+    color: black;
+}
+
+.menu-toggle.active img {
+    display: none; /* Hide the image when active */
+}
+
+.menu-toggle.active .close-icon {
+    display: inline; /* Show the "X" when active */
+}
+
+/* Controls Menu */
+/* General Controls Styling */
+.controls {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    flex-direction: column;
+    gap: 10px;
+    display: none;
+    width: 180px;
+}
+
+/* Show controls when open */
+.controls.open {
+    display: flex; /* Make controls visible */
+}
+
+/* Button Styling */
+.controls button {
+    height: 40px;
+    background-color: unset;
+    border: none;
+    font-size: 18px; /* Optional for icon sizing */
+    color: black; /* Default icon color */
+    display: block; /* Make them stack vertically */
+    text-align: left;
+    width: 100%; /* Ensure they stretch the width of the container */
+    margin: 0; /* Remove margin for flush alignment */
+}
+
+.controls button::before {
+    margin-right: 10px;
+    content: '';
+    width: 0px;
+    height: 0px;
+    padding: 0 20px 0 0;
+    border: 2px solid white; /* White border */
+    background-color: transparent; /* Transparent background by default */
+    border-radius: 50%; /* Make them round */
+    /* display: flex; */
+}
+
+.controls button:focus {
+    outline: none;
+}
+
+/* Active state for the buttons */
+.controls button.active::before {
+    background-color: yellow; /* Yellow fill for active */
+}
+
+/* Responsive Styling */
+@media (max-width: 768px) {
+    .map-container {
+        max-width: 100%;
+        aspect-ratio: 1 / 1; /* Adjust for mobile */
+    }
+    
+    .map-container-wrapper {
+        width: 90vw; /* Adjust for smaller screens */
+        height: 90vw;
+    }
+
+    .controls {
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        max-height: 100%;
+        background: rgba(255, 255, 255, 0.75); /* Semi-transparent overlay */
+        z-index: 1000;
+        overflow-y: auto;
+        padding: 15px;
+        border-radius: 0;
+        display: none; /* Hidden initially */
+    }
+    
+    .controls.open {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: calc(100% - 30px);
+        height: 100%; /* Ensure it uses full height of the control box */
+    }
+
+    .menu-toggle {
+        top: 15px;
+        right: 15px;
+        z-index: 2000;
+    }
+}
+
+/* Always show controls as a panel on desktop */
+@media (min-width: 768px) {
+    .controls {
+        top: 30px;
+        right: 30px;
+    }
+}
+
+/* Zoom */
+.zoom-controls {
+    position: absolute;
+    bottom: 30px;
+    right: 30px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.zoom-btn {
+    width: 40px;
+    height: 40px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s;
+}
+
+.zoom-btn:hover {
+    background-color: rgba(200, 200, 200, 0.9);
+}
+
+.zoom-btn:active {
+    background-color: rgba(170, 170, 170, 0.9);
+}
