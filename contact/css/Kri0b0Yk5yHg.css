@@ -57,7 +57,7 @@
   transition: 0.5s;
 }
 #sb_instagram #sbi_images .sbi_item.sbi_transition {
-  opacity: 0;
+  opacity: 1;
 }
 #sb_instagram.sbi_col_1 #sbi_images,
 #sb_instagram.sbi_col_1.sbi_disable_mobile #sbi_images {
