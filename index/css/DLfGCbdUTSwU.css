@@ -1378,7 +1378,6 @@ html:not(.ie11) .feature-news-events__slider.slick-initialized .slick-slide {
     left: auto;
     margin-left: 0;
     max-width: 50%;
-    right: -50px;
   }
   .feature-book-why .grid {
     background-color: #fff;
