@@ -1886,4 +1886,29 @@ var sb_instagram_js_options = {"font_method":"svg","resized_url":"https:\/\/www.
             <script defer="" src="index/js/BL72wYvjCxxs.js" type="faf517cf8c068219ac333f7f-text/javascript"></script>
     <script src="index/js/IzFVVQDCnz4t.js" data-cf-settings="faf517cf8c068219ac333f7f-|49" defer=""></script>
 
+    <script>
+document.addEventListener("click", (e) => {
+  const li = e.target.closest("li");
+  if (!li) return;
+
+  const acc = li.querySelector(":scope > .accordion");
+  if (!acc) return;
+
+  const btn = acc.querySelector(".accordion__trigger");
+  if (!btn) return;
+
+  // If the user actually clicked a real link INSIDE the dropdown, let it navigate.
+  const clickedLinkInsidePanel = e.target.closest(".accordion__panel a[href]");
+  if (clickedLinkInsidePanel) return;
+
+  // Don’t double-trigger if they clicked the button itself
+  if (e.target.closest(".accordion__trigger")) return;
+
+  // Only trigger when clicking the top row (li/a area), not inside the open panel
+  if (e.target.closest(".accordion__panel")) return;
+
+  btn.click();
+});
+</script>
+
 </body></html>
