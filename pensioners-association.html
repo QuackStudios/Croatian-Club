@@ -1383,12 +1383,10 @@ document.addEventListener("click", (e) => {
       // If this is the big-picture variant, let width follow aspect ratio
       if (big) {
         img.style.width = "auto";
-        img.style.height = "auto";
         img.style.maxWidth = "none"; // prevents CSS like max-width:100% from forcing stretch
       } else {
         // (Optional) clean up big-picture overrides if an img gets reused
         img.style.width = "";
-        img.style.height = "";
         img.style.maxWidth = "";
       }
     });
