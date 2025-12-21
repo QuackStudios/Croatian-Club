@@ -1260,4 +1260,234 @@ document.addEventListener("click", (e) => {
 });
 </script>
 
+<script>
+(() => {
+  const SELECTORS = {
+    headerNav: ".header-nav",
+    level2Active: ".header-nav .level-2.is-active",
+    level2Any: ".header-nav .level-2",
+    pictureActive: ".header-nav .picture.is-active",
+    pictureAny: ".header-nav .picture",
+  };
+
+  const OFFSET = 100; // subtract 100px from level2 height
+
+  const log = (...args) => console.log("%c[menu-height-sync]", "color:#6a5acd", ...args);
+  const warn = (...args) => console.warn("%c[menu-height-sync]", "color:#b8860b", ...args);
+
+  const headerNav = document.querySelector(SELECTORS.headerNav) || document.body;
+
+  function isVisible(el) {
+    if (!el || !el.isConnected) return false;
+    const cs = getComputedStyle(el);
+    if (cs.display === "none" || cs.visibility === "hidden") return false;
+    const r = el.getBoundingClientRect();
+    return r.height > 0 && r.width > 0;
+  }
+
+  function getActivePicture() {
+    return document.querySelector(SELECTORS.pictureActive);
+  }
+
+  function getAllPictures() {
+    return Array.from(document.querySelectorAll(SELECTORS.pictureAny));
+  }
+
+  function getImgsWithin(el) {
+    if (!el) return [];
+    return Array.from(el.querySelectorAll("img"));
+  }
+
+  function isBigPicture(container) {
+    return !!container && container.classList && container.classList.contains("big-picture");
+  }
+
+  function describeImg(img) {
+    return {
+      classes: img.className,
+      src: img.getAttribute("src"),
+      inlineMaxHeight: img.style.maxHeight || "(none)",
+      inlineWidth: img.style.width || "(none)",
+      inlineHeight: img.style.height || "(none)",
+      inlineMaxWidth: img.style.maxWidth || "(none)",
+      computedMaxHeight: getComputedStyle(img).maxHeight,
+      computedWidth: getComputedStyle(img).width,
+      computedMaxWidth: getComputedStyle(img).maxWidth,
+      isConnected: img.isConnected,
+      offsetHeight: img.offsetHeight,
+      natural: `${img.naturalWidth}x${img.naturalHeight}`,
+      complete: img.complete,
+      marker: img.dataset.mhsStyled || "(no marker)",
+    };
+  }
+
+  // Resolve the "real" open/visible level-2 even if is-active gets removed on hover
+  function getLevel2Resolved() {
+    // Prefer explicit active
+    const active = document.querySelector(SELECTORS.level2Active);
+    if (isVisible(active)) return active;
+
+    // Fallback to best visible candidate
+    const candidates = Array.from(document.querySelectorAll(SELECTORS.level2Any))
+      .filter(isVisible)
+      .map((el) => ({ el, h: el.getBoundingClientRect().height }))
+      .sort((a, b) => b.h - a.h);
+
+    return candidates[0]?.el || null;
+  }
+
+  function applySizingToContainer(container, px, reason) {
+    const imgs = getImgsWithin(container);
+    if (!imgs.length) {
+      warn(reason, "No <img> found in container:", container);
+      return { count: 0, imgs: [] };
+    }
+
+    const big = isBigPicture(container);
+
+    imgs.forEach((img) => {
+      // Marker so we can tell if THIS exact node was ever styled
+      img.dataset.mhsStyled = `yes@${Date.now()}`;
+
+      // Always constrain by height
+      img.style.maxHeight = `${px}px`;
+
+      // If this is the big-picture variant, let width follow aspect ratio
+      if (big) {
+        img.style.width = "auto";
+        img.style.height = "auto";
+        img.style.maxWidth = "none"; // prevents CSS like max-width:100% from forcing stretch
+      } else {
+        // (Optional) clean up big-picture overrides if an img gets reused
+        img.style.width = "";
+        img.style.height = "";
+        img.style.maxWidth = "";
+      }
+    });
+
+    const verification = imgs.map(describeImg);
+    log(
+      reason,
+      `Applied max-height=${px}px to ${imgs.length} img(s)`,
+      { bigPicture: big },
+      verification
+    );
+
+    // If any didn't take the inline style, warn (likely replaced nodes)
+    const failed = verification.filter((v) => v.inlineMaxHeight === "(none)");
+    if (failed.length) {
+      warn(reason, "Some img(s) did NOT get inline maxHeight set (likely replaced / not the ones you see):", failed);
+    }
+
+    return { count: imgs.length, imgs };
+  }
+
+  function sync(reason = "sync") {
+    const level2 = getLevel2Resolved();
+    const pic = getActivePicture();
+
+    if (!level2) {
+      warn(reason, "No visible level2 found (active removed + none visible?)");
+      return;
+    }
+    if (!pic) {
+      warn(reason, "No active picture found");
+      return;
+    }
+
+    const h = Math.round(level2.getBoundingClientRect().height);
+    const target = Math.max(0, h - OFFSET);
+
+    // Apply to active picture container
+    applySizingToContainer(pic, target, reason);
+
+    // Extra debug: show ALL picture containers and what imgs they have
+    const allPics = getAllPictures();
+    const map = allPics.map((p, i) => ({
+      i,
+      className: p.className,
+      isActive: p.classList.contains("is-active"),
+      isBig: p.classList.contains("big-picture"),
+      imgs: getImgsWithin(p).map((img) => ({
+        classes: img.className,
+        src: img.getAttribute("src"),
+        inlineMaxHeight: img.style.maxHeight || "(none)",
+        inlineWidth: img.style.width || "(none)",
+        inlineMaxWidth: img.style.maxWidth || "(none)",
+      })),
+    }));
+    log(reason, "Picture containers snapshot:", map);
+
+    // Debug: which level2 was used
+    log(reason, "Using level2:", { className: level2.className, height: h });
+  }
+
+  // ---- If images are inserted AFTER sync, catch them ----
+  const headerNavObserver = new MutationObserver((mutations) => {
+    let hit = false;
+    for (const m of mutations) {
+      if (m.type === "childList" && (m.addedNodes?.length || m.removedNodes?.length)) {
+        hit = true;
+        break;
+      }
+      if (m.type === "attributes" && m.attributeName === "class") {
+        hit = true;
+        break;
+      }
+    }
+    if (hit) {
+      sync("HeaderNavMutation rAF1");
+      requestAnimationFrame(() => sync("HeaderNavMutation rAF2"));
+      setTimeout(() => sync("HeaderNavMutation +50ms"), 50);
+      setTimeout(() => sync("HeaderNavMutation +250ms"), 250);
+    }
+  });
+
+  headerNavObserver.observe(headerNav, {
+    subtree: true,
+    childList: true,
+    attributes: true,
+    attributeFilter: ["class"],
+  });
+
+  // ---- Also watch resizing ----
+  let ro;
+  function attachResizeObserver() {
+    const level2 = getLevel2Resolved();
+    if (!level2) return;
+
+    if (ro) ro.disconnect();
+    ro = new ResizeObserver(() => {
+      sync("ResizeObserver");
+      requestAnimationFrame(() => sync("ResizeObserver rAF2"));
+    });
+    ro.observe(level2);
+    log("ResizeObserver attached to level2:", level2.className);
+  }
+
+  // ---- Initial + window resize ----
+  function init() {
+    sync("Initial");
+    attachResizeObserver();
+
+    // If menu is opened/hovered later, this catches it.
+    const classObserver = new MutationObserver(() => {
+      sync("ClassMutation");
+      attachResizeObserver();
+    });
+    classObserver.observe(document.body, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    window.addEventListener("resize", () => {
+      sync("window.resize");
+      requestAnimationFrame(() => sync("window.resize rAF2"));
+    });
+  }
+
+  init();
+})();
+</script>
 </body></html>
