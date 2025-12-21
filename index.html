@@ -1603,7 +1603,7 @@ The exhibition was a wonderful testament to their dedication, creativity, and co
                     </li>
                 
                 <li>
-            <a href="membership.html" data-image1x="bog-i-hrvati.png" data-image2x="bog-i-hrvati.png">
+            <a href="membership.html" data-image1x="bog-i-hrvati-3.png" data-image2x="bog-i-hrvati-3.png">
     <span class="text">	Membership</span>
                 <span class="icon">
                     <svg xmlns="http://www.w3.org/2000/svg" width="8" height="12" viewBox="0 0 8 12">
@@ -1612,7 +1612,7 @@ The exhibition was a wonderful testament to their dedication, creativity, and co
                 </span>
 </a>                    </li>
                 <li>
-            <a href="contact.html" data-image1x="temp-img.png" data-image2x="temp-img.png">
+            <a href="contact.html" data-image1x="bog-i-hrvati-3.png" data-image2x="bog-i-hrvati-3.png">
     <span class="text">	Contact</span>
                 <span class="icon">
                     <svg xmlns="http://www.w3.org/2000/svg" width="8" height="12" viewBox="0 0 8 12">
@@ -1961,7 +1961,9 @@ document.addEventListener("click", (e) => {
 <script>
 (() => {
   const SELECTORS = {
-    level2: ".header-nav .level-2.is-active",
+    headerNav: ".header-nav",
+    level2Active: ".header-nav .level-2.is-active",
+    level2Any: ".header-nav .level-2",
     pictureActive: ".header-nav .picture.is-active",
     pictureAny: ".header-nav .picture",
   };
@@ -1971,8 +1973,14 @@ document.addEventListener("click", (e) => {
   const log = (...args) => console.log("%c[menu-height-sync]", "color:#6a5acd", ...args);
   const warn = (...args) => console.warn("%c[menu-height-sync]", "color:#b8860b", ...args);
 
-  function getLevel2() {
-    return document.querySelector(SELECTORS.level2);
+  const headerNav = document.querySelector(SELECTORS.headerNav) || document.body;
+
+  function isVisible(el) {
+    if (!el || !el.isConnected) return false;
+    const cs = getComputedStyle(el);
+    if (cs.display === "none" || cs.visibility === "hidden") return false;
+    const r = el.getBoundingClientRect();
+    return r.height > 0 && r.width > 0;
   }
 
   function getActivePicture() {
@@ -1988,12 +1996,21 @@ document.addEventListener("click", (e) => {
     return Array.from(el.querySelectorAll("img"));
   }
 
+  function isBigPicture(container) {
+    return !!container && container.classList && container.classList.contains("big-picture");
+  }
+
   function describeImg(img) {
     return {
       classes: img.className,
       src: img.getAttribute("src"),
       inlineMaxHeight: img.style.maxHeight || "(none)",
+      inlineWidth: img.style.width || "(none)",
+      inlineHeight: img.style.height || "(none)",
+      inlineMaxWidth: img.style.maxWidth || "(none)",
       computedMaxHeight: getComputedStyle(img).maxHeight,
+      computedWidth: getComputedStyle(img).width,
+      computedMaxWidth: getComputedStyle(img).maxWidth,
       isConnected: img.isConnected,
       offsetHeight: img.offsetHeight,
       natural: `${img.naturalWidth}x${img.naturalHeight}`,
@@ -2002,25 +2019,60 @@ document.addEventListener("click", (e) => {
     };
   }
 
-  function applyMaxHeightToContainer(container, px, reason) {
+  // Resolve the "real" open/visible level-2 even if is-active gets removed on hover
+  function getLevel2Resolved() {
+    // Prefer explicit active
+    const active = document.querySelector(SELECTORS.level2Active);
+    if (isVisible(active)) return active;
+
+    // Fallback to best visible candidate
+    const candidates = Array.from(document.querySelectorAll(SELECTORS.level2Any))
+      .filter(isVisible)
+      .map((el) => ({ el, h: el.getBoundingClientRect().height }))
+      .sort((a, b) => b.h - a.h);
+
+    return candidates[0]?.el || null;
+  }
+
+  function applySizingToContainer(container, px, reason) {
     const imgs = getImgsWithin(container);
     if (!imgs.length) {
       warn(reason, "No <img> found in container:", container);
       return { count: 0, imgs: [] };
     }
 
+    const big = isBigPicture(container);
+
     imgs.forEach((img) => {
       // Marker so we can tell if THIS exact node was ever styled
       img.dataset.mhsStyled = `yes@${Date.now()}`;
+
+      // Always constrain by height
       img.style.maxHeight = `${px}px`;
+
+      // If this is the big-picture variant, let width follow aspect ratio
+      if (big) {
+        img.style.width = "auto";
+        img.style.height = "auto";
+        img.style.maxWidth = "none"; // prevents CSS like max-width:100% from forcing stretch
+      } else {
+        // (Optional) clean up big-picture overrides if an img gets reused
+        img.style.width = "";
+        img.style.height = "";
+        img.style.maxWidth = "";
+      }
     });
 
-    // Verify immediately (catches “node swapped after apply”)
     const verification = imgs.map(describeImg);
-    log(reason, `Applied max-height=${px}px to ${imgs.length} img(s)`, verification);
+    log(
+      reason,
+      `Applied max-height=${px}px to ${imgs.length} img(s)`,
+      { bigPicture: big },
+      verification
+    );
 
-    // If any didn't take the inline style, scream loudly:
-    const failed = verification.filter(v => v.inlineMaxHeight === "(none)");
+    // If any didn't take the inline style, warn (likely replaced nodes)
+    const failed = verification.filter((v) => v.inlineMaxHeight === "(none)");
     if (failed.length) {
       warn(reason, "Some img(s) did NOT get inline maxHeight set (likely replaced / not the ones you see):", failed);
     }
@@ -2029,11 +2081,11 @@ document.addEventListener("click", (e) => {
   }
 
   function sync(reason = "sync") {
-    const level2 = getLevel2();
+    const level2 = getLevel2Resolved();
     const pic = getActivePicture();
 
     if (!level2) {
-      warn(reason, "No active level2 found");
+      warn(reason, "No visible level2 found (active removed + none visible?)");
       return;
     }
     if (!pic) {
@@ -2044,8 +2096,8 @@ document.addEventListener("click", (e) => {
     const h = Math.round(level2.getBoundingClientRect().height);
     const target = Math.max(0, h - OFFSET);
 
-    // Apply to active picture
-    applyMaxHeightToContainer(pic, target, reason);
+    // Apply to active picture container
+    applySizingToContainer(pic, target, reason);
 
     // Extra debug: show ALL picture containers and what imgs they have
     const allPics = getAllPictures();
@@ -2053,17 +2105,23 @@ document.addEventListener("click", (e) => {
       i,
       className: p.className,
       isActive: p.classList.contains("is-active"),
-      imgs: getImgsWithin(p).map(img => ({
+      isBig: p.classList.contains("big-picture"),
+      imgs: getImgsWithin(p).map((img) => ({
         classes: img.className,
         src: img.getAttribute("src"),
-        inlineMaxHeight: img.style.maxHeight || "(none)"
-      }))
+        inlineMaxHeight: img.style.maxHeight || "(none)",
+        inlineWidth: img.style.width || "(none)",
+        inlineMaxWidth: img.style.maxWidth || "(none)",
+      })),
     }));
     log(reason, "Picture containers snapshot:", map);
+
+    // Debug: which level2 was used
+    log(reason, "Using level2:", { className: level2.className, height: h });
   }
 
   // ---- If images are inserted AFTER sync, catch them ----
-  const pictureInsertObserver = new MutationObserver((mutations) => {
+  const headerNavObserver = new MutationObserver((mutations) => {
     let hit = false;
     for (const m of mutations) {
       if (m.type === "childList" && (m.addedNodes?.length || m.removedNodes?.length)) {
@@ -2076,35 +2134,33 @@ document.addEventListener("click", (e) => {
       }
     }
     if (hit) {
-      // Run a couple of frames later too, in case their script swaps nodes asynchronously
-      sync("PictureMutation rAF1");
-      requestAnimationFrame(() => sync("PictureMutation rAF2"));
-      setTimeout(() => sync("PictureMutation +50ms"), 50);
-      setTimeout(() => sync("PictureMutation +250ms"), 250);
+      sync("HeaderNavMutation rAF1");
+      requestAnimationFrame(() => sync("HeaderNavMutation rAF2"));
+      setTimeout(() => sync("HeaderNavMutation +50ms"), 50);
+      setTimeout(() => sync("HeaderNavMutation +250ms"), 250);
     }
   });
 
-  // Observe header-nav subtree (narrower than document.body)
-  const headerNav = document.querySelector(".header-nav") || document.body;
-  pictureInsertObserver.observe(headerNav, {
+  headerNavObserver.observe(headerNav, {
     subtree: true,
     childList: true,
     attributes: true,
-    attributeFilter: ["class"]
+    attributeFilter: ["class"],
   });
 
   // ---- Also watch resizing ----
   let ro;
   function attachResizeObserver() {
-    const level2 = getLevel2();
+    const level2 = getLevel2Resolved();
     if (!level2) return;
+
     if (ro) ro.disconnect();
     ro = new ResizeObserver(() => {
       sync("ResizeObserver");
       requestAnimationFrame(() => sync("ResizeObserver rAF2"));
     });
     ro.observe(level2);
-    log("ResizeObserver attached to level2");
+    log("ResizeObserver attached to level2:", level2.className);
   }
 
   // ---- Initial + window resize ----
@@ -2112,13 +2168,16 @@ document.addEventListener("click", (e) => {
     sync("Initial");
     attachResizeObserver();
 
-    // If menu is opened later, this will catch it.
+    // If menu is opened/hovered later, this catches it.
     const classObserver = new MutationObserver(() => {
-      // When is-active changes, resync and reattach RO
       sync("ClassMutation");
       attachResizeObserver();
     });
-    classObserver.observe(document.body, { subtree: true, attributes: true, attributeFilter: ["class"] });
+    classObserver.observe(document.body, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["class"],
+    });
 
     window.addEventListener("resize", () => {
       sync("window.resize");
@@ -2127,9 +2186,10 @@ document.addEventListener("click", (e) => {
   }
 
   init();
-
 })();
 </script>
+
+
 
 
 
