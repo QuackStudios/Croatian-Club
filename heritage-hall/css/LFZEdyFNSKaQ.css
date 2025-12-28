@@ -2761,7 +2761,7 @@ body:not(.js-mobile-menu-open) .header-nav ul {
 .header-nav .picture img {
   display: block;
   left: 0;
-  object-fit: cover;
+  object-fit: contain;
   top: 0;
   width: 100%;
   z-index: 1;
