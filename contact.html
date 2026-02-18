@@ -323,7 +323,7 @@ var woocommerce_params = {"ajax_url":"\/wp-admin\/admin-ajax.php","wc_ajax_url":
                     </div>
                     
                     <div class="grid__item" data-col="sidebar" data-critical="">
-                        <form method="post" action="https://script.google.com/macros/s/AKfycbzy1mC3dA5BlHK-g5uZAskdJds32iBWfLwcKFvaKrdU2_FuLcqDLKM_Dd72hA2QJe-BQg/exec" class="section-contact__form step-up" id="js-contact">
+                        <form method="post" action="https://script.google.com/macros/s/AKfycbwkpzvbAoQjLI4s7dk-gFlPML9_2n5DKN8VAl1BO6U-R5G1DadhFLD8k9_ayIwrD9QjqQ/exec" class="section-contact__form step-up" id="js-contact">
                             <h2 class="title">Enquire Now</h2>
 
                             <div class="error-log js-error-report" style="display:none">
@@ -343,6 +343,23 @@ var woocommerce_params = {"ajax_url":"\/wp-admin\/admin-ajax.php","wc_ajax_url":
                             </div>
 
                             <div class="fields">
+                                <div class="field" data-span="half">
+                                <label for="enquiry_type">Type of Enquiry</label>
+                                <select id="enquiry_type" name="enquiry_type" class="required" required>
+                                    <option value="" selected disabled>Select an option</option>
+                                    <option value="general">General enquiry</option>
+                                    <option value="venue">Venue hire</option>
+                                </select>
+                                </div>
+
+                                <div class="field" data-span="half">
+                                <label for="enquiry_detail" id="enquiry_detail_label">Enquiry Category</label>
+                                <select id="enquiry_detail" name="enquiry_detail" class="required" required>
+                                    <option value="" selected disabled>Select a category</option>
+                                    <!-- options will be populated by JS -->
+                                </select>
+                                </div>
+
                                 <div class="field" data-span="half">
                                     <label for="first_name">First Name</label>
                                     <input id="first_name" type="text" name="first_name" class="required">
@@ -390,7 +407,47 @@ var woocommerce_params = {"ajax_url":"\/wp-admin\/admin-ajax.php","wc_ajax_url":
         </section>
 
 
-        
+        <script>
+        (function () {
+  const typeEl = document.getElementById("enquiry_type");
+  const detailEl = document.getElementById("enquiry_detail");
+  const detailLabelEl = document.getElementById("enquiry_detail_label");
+
+  if (!typeEl || !detailEl || !detailLabelEl) return;
+
+  const OPTIONS = {
+    general: ["Membership", "Wedding", "Banquet", "Other"],
+    venue: ["Heritage Hall", "Lower house", "Members Lounge", "Mesic Fields"],
+  };
+
+  function setDetailOptions(type) {
+    // Reset
+    detailEl.innerHTML = `<option value="" selected disabled>Select a category</option>`;
+
+    if (!type || !OPTIONS[type]) return;
+
+    // Label changes (optional)
+    detailLabelEl.textContent = type === "venue" ? "Venue" : "General Enquiry Type";
+
+    // Populate
+    OPTIONS[type].forEach((label) => {
+      const opt = document.createElement("option");
+      opt.value = label;
+      opt.textContent = label;
+      detailEl.appendChild(opt);
+    });
+  }
+
+  // Initial state (in case browser retains form values)
+  setDetailOptions(typeEl.value);
+
+  typeEl.addEventListener("change", () => {
+    setDetailOptions(typeEl.value);
+    detailEl.value = ""; // force re-pick after changing type
+  });
+})();
+
+        </script>
 
     </main>
         

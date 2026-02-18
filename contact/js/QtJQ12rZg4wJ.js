@@ -78,7 +78,7 @@
             i.html(""),
             $.ajax({
               type: "POST",
-              url: "https://script.google.com/macros/s/AKfycbzy1mC3dA5BlHK-g5uZAskdJds32iBWfLwcKFvaKrdU2_FuLcqDLKM_Dd72hA2QJe-BQg/exec",
+              url: "https://script.google.com/macros/s/AKfycbwkpzvbAoQjLI4s7dk-gFlPML9_2n5DKN8VAl1BO6U-R5G1DadhFLD8k9_ayIwrD9QjqQ/exec",
               data: e.serialize(),
               dataType: "json",
               encode: !0,
