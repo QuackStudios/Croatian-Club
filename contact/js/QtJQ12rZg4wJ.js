@@ -80,7 +80,7 @@
               type: "POST",
               url: "https://script.google.com/macros/s/AKfycbzrHwKsbgHka6vAG9XgbJiX2vmJ0T312aJ8gwCFxLwinSKEL7u-Gi6Ctu1UjdUNMg4KCw/exec",
               data: e.serialize(),
-              dataType: "json",
+              dataType: "json", 
               encode: !0,
             })
               .done(function () {
