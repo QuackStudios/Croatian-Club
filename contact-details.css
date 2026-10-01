@@ -1,53 +1,6 @@
-/* Shared contact details for every page and screen size. */
-.phone-number {
+/* Contact page enquiry details only. */
+.section-contact .phone-number {
   white-space: nowrap;
-}
-
-.footer-main__contact .container {
-  flex-wrap: wrap;
-}
-
-.footer-main__contact .footer-main__logo {
-  margin-bottom: 32px;
-}
-
-.footer-main__contact .footer-main__contact__nav {
-  display: grid;
-  gap: 24px;
-  grid-template-columns: minmax(0, 1fr);
-  margin-left: 0;
-  width: 100%;
-}
-
-.footer-main__contact .footer-main__contact__nav > * {
-  border: 0;
-  height: auto;
-  margin: 0;
-  min-width: 0;
-  padding: 0;
-}
-
-.footer-main__contact .cluster.footer-contact-phones {
-  align-items: flex-start;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.footer-main__contact .cluster.footer-contact-phones > * {
-  margin: 0;
-  max-width: 100%;
-}
-
-.footer-contact-phones .contact-phone-label {
-  display: block;
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
-
-.footer-main__contact .footer-main__contact__nav .text {
-  min-width: 0;
-  overflow-wrap: anywhere;
-  white-space: normal;
 }
 
 .section-contact .contacts .contact__header .title {
@@ -72,32 +25,7 @@
   overflow-wrap: anywhere;
 }
 
-.section-contact .btn--contact:focus-visible,
-.footer-contact-phones a:focus-visible {
+.section-contact .btn--contact:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 4px;
-}
-
-@media (min-width: 1025px) {
-  .footer-main__contact .footer-main__contact__nav {
-    align-items: start;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 1400px) {
-  .footer-main__contact .footer-main__contact__nav {
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1.2fr) auto;
-  }
-}
-
-@media (max-width: 1024px) {
-  .footer-main__contact .footer-main__contact__nav {
-    justify-items: center;
-    text-align: center;
-  }
-
-  .footer-main__contact .cluster.footer-contact-phones {
-    align-items: center;
-  }
 }
