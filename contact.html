@@ -364,15 +364,32 @@ var woocommerce_params = {"ajax_url":"\/wp-admin\/admin-ajax.php","wc_ajax_url":
                                     <input id="contact_number" type="text" name="contact_number" class="required">
                                 </div>
                                 
+                                
                                 <div class="field" data-span="half">
                                     <label for="email">Email Address</label>
-                                    <input id="email" type="email" name="email" class="required">
+                                    <input id="email" type="email" name="email" class="required" required>
                                 </div>
-                                
+
+                                <!-- Anti-spam honeypot: hidden from genuine visitors -->
+                                <div
+                                    aria-hidden="true"
+                                    style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;"
+                                >
+                                    <label for="website_url">Website URL</label>
+                                    <input
+                                        type="text"
+                                        id="website_url"
+                                        name="website_url"
+                                        tabindex="-1"
+                                        autocomplete="off"
+                                    >
+                                </div>
+
                                 <div class="field" data-span="full">
                                     <label for="message">Message</label>
-                                    <textarea id="message" title="Message" name="message"></textarea>
+                                    <textarea id="message" title="Message" name="message" required></textarea>
                                 </div>
+
                                 
                                 <div class="field" data-span="full">
                                     <button type="submit" class="btn btn--square">
